@@ -1,0 +1,1 @@
+fileinto "INBOX";
