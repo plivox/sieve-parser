@@ -1,0 +1,49 @@
+{
+  "name": "sieveparser",
+  "build": {
+    "dockerfile": "Dockerfile"
+    // "args": {
+    //   "RUSTUP_TOOLCHAIN": "test"
+    // }
+  },
+  // "runArgs": [
+  //   "--env-file",
+  //   "${localWorkspaceFolder}/.devcontainer/.env"
+  // ],
+  "postAttachCommand": "/container-entrypoint",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "workspaceFolder": "/workspace",
+  "mounts": [
+    {
+      "source": "devcontainer-packaging-commandhistory",
+      "target": "/commandhistory",
+      "type": "volume"
+    },
+    {
+      "source": "/var/run/docker.sock",
+      "target": "/var/run/docker-host.sock",
+      "type": "bind"
+    }
+  ],
+  "customizations": {
+    "vscode": {
+      // "settings": {
+      //   "rust-analyzer.server.extraEnv": {
+      //     "RUSTUP_TOOLCHAIN": "${env:RUSTUP_TOOLCHAIN}"
+      //   }
+      // },
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "EditorConfig.EditorConfig",
+        "MS-CEINTL.vscode-language-pack-fr",
+        "eamodio.gitlens",
+        "GitHub.copilot",
+        "rust-lang.rust-analyzer",
+        "adzero.vscode-sievehighlight",
+        "tamasfe.even-better-toml",
+        "mrmlnc.vscode-duplicate",
+        "pest.pest-ide-tools"
+      ]
+    }
+  }
+}

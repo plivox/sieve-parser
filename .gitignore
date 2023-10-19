@@ -1,0 +1,4 @@
+/resources/*
+/target
+.DS_Store
+.env

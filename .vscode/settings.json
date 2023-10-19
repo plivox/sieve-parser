@@ -1,0 +1,28 @@
+{
+  "editor.formatOnSave": true,
+  "editor.semanticTokenColorCustomizations": {
+    "rules": {
+      "operator.unsafe": "#ff6600",
+      "function.unsafe": "#ff6600",
+      "method.unsafe": "#ff6600",
+      "*.mutable": {
+        "fontStyle": ""
+      }
+    }
+  },
+  "pestIdeTools.checkForUpdates": true,
+  "pestIdeTools.alwaysUsedRuleNames": [
+    "sieve"
+  ],
+  "[pest]": {
+    "editor.formatOnSave": false
+  },
+  // "rust-analyzer.server.extraEnv": {
+  //   // "RUSTUP_TOOLCHAIN": "${env:RUSTUP_TOOLCHAIN}"
+  //   "RUSTUP_TOOLCHAIN": "1.73.0-aarch64-unknown-linux-gnu"
+  // },
+  "rust-analyzer.files.excludeDirs": [
+    "**/resources"
+  ],
+  "rust-analyzer.showUnlinkedFileNotification": false
+}

@@ -1,0 +1,352 @@
+//
+// Pest modifiers:
+//   _ -> Silent (no token pairs, no error reporting)
+//   @ -> Atomic (No whitespace, cascading)
+//   $ -> Compound atomic (Like atomic but not cascading)
+//   ! -> Non-atomic (Stop cascading of atomics)
+//
+
+sieve = _{ SOI ~ action* ~ EOI }
+
+action = _{
+    // hash_comment |
+    // bracketed_comment |
+    // (
+    
+    control_require   |
+    control_condition |
+    control_stop      |
+    action_fileinto   |
+    action_redirect   |
+    action_keep       |
+    action_discard    |
+    action_vacation
+    
+    // ) ~ NEWLINE?
+}
+
+///
+/// [Comments](https://datatracker.ietf.org/doc/html/rfc5228#section-2.3)
+///
+COMMENT = { hash_comment | bracketed_comment }
+
+hash_comment = @{ hashtag ~ (!newline ~ ANY)* }
+
+bracketed_comment = @{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
+
+// bracketed_comment = _{ "/*" ~ (bracketed_comment | !"*/" ~ ANY)* ~ "*/" }
+// block_comment = _{ "/*" ~ (block_comment | !"*/" ~ ANY)* ~ "*/" }
+// COMMENT    = _{ block_comment | ("//" ~ (!newline ~ ANY)*) }
+
+///
+/// [Strings](https://datatracker.ietf.org/doc/html/rfc5228#section-2.4.2)
+///
+
+string = ${ double_quote ~ inner_str ~ double_quote }
+
+multi_line_string = @{
+    "text:" ~ newline? ~ multi_line_string_content ~ "\n.\n"
+}
+
+// multi_line_string_start = {
+// "text:"
+// }
+
+multi_line_string_content = ${
+    (!"\n.\n" ~ ANY)*
+}
+
+///
+/// [Arguments](https://datatracker.ietf.org/doc/html/rfc5228#section-2.6)
+///
+
+//
+// arguments??
+//
+// :domain (string)
+// :localpart (string)
+// :matches (string)
+// :list
+//
+// parameter?
+// :copy
+// :all
+//
+
+// arguments = { (tagged_argument_with_value)* }
+
+// tagged_arguments = _{
+//     colon ~ tagged_argument_name
+// }
+
+// tagged_argument_name = { alpha+ }
+
+// tagged_argument_with_value = {
+//     colon ~ tagged_argument_name ~ tagged_argument_value?
+// }
+
+// tagged_argument_value = { (string | array) }
+
+///
+/// [Comparators](https://datatracker.ietf.org/doc/html/rfc5228#section-2.7.3)
+///
+
+comparators = {
+    colon ~ "is"       |
+    colon ~ "matches"  |
+    colon ~ "contains" |
+    colon ~ "count"    | //
+    colon ~ "regex"      // REGEX-01 (draft-ietf-sieve-regex-01)
+}
+
+///
+/// [Control](https://datatracker.ietf.org/doc/html/rfc5228#section-4)
+///
+
+control_condition = {
+    "if" ~ test ~ opening_brace ~ action* ~ closing_brace ~
+    ("elsif" ~ test ~ opening_brace ~ action* ~ closing_brace)* ~
+    ("else" ~ opening_brace ~ action* ~ closing_brace)?
+}
+
+control_require = {
+    "require" ~ (string | array) ~ semicolon
+}
+
+control_stop = {
+    "stop" ~ semicolon
+}
+
+///
+/// [Action](https://datatracker.ietf.org/doc/html/rfc5228#section-4)
+///
+
+action_fileinto = {
+    "fileinto" ~ action_fileinto_parameters? ~ string ~ semicolon
+}
+
+action_fileinto_parameters = {
+    colon ~ (
+        "copy"   | // RFC 3894
+        "create"   // RFC 5490
+    )
+}
+
+action_redirect = {
+    "redirect" ~ string ~ semicolon
+}
+
+action_keep = {
+    "keep" ~ semicolon
+}
+
+action_discard = {
+    "discard" ~ semicolon
+}
+
+///
+/// [Action:Vacation](https://datatracker.ietf.org/doc/rfc5230/)
+///
+
+action_vacation = {
+    "vacation" ~ action_vacation_arguments* ~ action_vacation_reason ~ semicolon
+}
+
+action_vacation_arguments = _{
+    action_vacation_argument_days      |
+    action_vacation_argument_subject   |
+    action_vacation_argument_from      |
+    action_vacation_argument_addresses |
+    action_vacation_argument_mime      |
+    action_vacation_argument_handle
+}
+
+action_vacation_argument_days = { colon ~ "days" ~ number }
+
+action_vacation_argument_subject = { colon ~ "subject" ~ string }
+
+action_vacation_argument_from = { colon ~ "from" ~ string }
+
+action_vacation_argument_addresses = { colon ~ "addresses" ~ (string | array) }
+
+action_vacation_argument_mime = { colon ~ "mime" }
+
+action_vacation_argument_handle = { colon ~ "handle" ~ string }
+
+action_vacation_reason = {
+    string | multi_line_string
+}
+
+///
+/// [Test](https://datatracker.ietf.org/doc/html/rfc5228#section-5)
+///
+test = {
+    test_not? ~ (
+        test_address  |
+        test_allof    |
+        test_anyof    |
+        test_envelope |
+        test_exists   |
+        test_false    |
+        test_header   |
+        test_size     |
+        test_true
+    )
+}
+
+test_address = {
+    "address" ~ test_address_part? ~ test_address_operator ~ string ~ (string | array)
+}
+
+test_address_part = {
+    colon ~ ("all" | "localpart" | "domain" | "user" | "detail")
+}
+
+test_address_operator = {
+    colon ~ ("is" | "regex" | "contains" | "matches" | "count")
+}
+
+test_allof = {
+    "allof" ~ opening_paren ~ test ~ (comma ~ test)* ~ comma? ~ closing_paren
+}
+
+test_anyof = {
+    "anyof" ~ opening_paren ~ test ~ (comma ~ test)* ~ comma? ~ closing_paren
+}
+
+test_envelope = {
+    "envelope" ~ test_envelope_part? ~ test_envelope_operator ~ string ~ (string | array)
+}
+
+test_envelope_part = {
+    colon ~ ("all" | "localpart" | "domain" | "user" | "detail")
+}
+
+test_envelope_operator = {
+    colon ~ ("is" | "regex" | "contains" | "matches" | "count")
+}
+
+test_exists = {
+    "exists" ~ (string | array)
+}
+
+test_false = {
+    false
+}
+
+test_header = {
+    "header" ~ comparators ~ test_header_argument_header ~ test_header_argument_key
+}
+
+test_header_argument_header = {
+    (string | array)
+}
+
+test_header_argument_key = {
+    (string | array)
+}
+
+test_not = {
+    "not"
+}
+
+test_size = {
+    "size" ~ colon ~ test_size_argument ~ number ~ quantifier?
+}
+
+test_size_argument = {
+    ("over" | "under")
+}
+
+test_true = {
+    true
+}
+
+///
+/// Base Types
+///
+
+/// Array of strings.
+array = { opening_bracket ~ string ~ (comma ~ string)* ~ comma? ~ closing_bracket }
+
+/// A quoted string.
+inner_str = @{ (!(double_quote | "\\") ~ ANY)* ~ (escape ~ inner_str)? }
+
+// /// An escaped or any character.
+// inner_chr = @{ escape | ANY }
+
+/// An escape sequence.
+escape = @{ "\\" ~ ("\"" | "\\" | "r" | "n" | "t" | "0" | "'") }
+
+/// Boolean
+// boolean = @{ "true" | "false" }
+
+/// Boolean true.
+true = { "true" }
+
+/// Boolean false.
+false = { "false" }
+
+/// Non-atomic rule prefix.
+// non_atomic_modifier = { "not" }
+
+/// An alpha character.
+alpha = _{ 'a'..'z' | 'A'..'Z' }
+
+/// An alphanumeric character.
+alpha_num = _{ alpha | '0'..'9' }
+
+/// A number.
+number = @{ '0'..'9'+ }
+
+/// An integer number (positive or negative).
+integer = @{ number | "-" ~ "0"* ~ '1'..'9' ~ number? }
+
+/// Quantifier.
+quantifier = { "K" | "M" | "G" }
+
+/// Opening parenthesis.
+opening_paren = _{ "(" }
+
+/// Closing parenthesis.
+closing_paren = _{ ")" }
+
+/// Opening bracket.
+opening_bracket = _{ "[" }
+
+/// Closing bracket.
+closing_bracket = _{ "]" }
+
+/// Opening brace.
+opening_brace = _{ "{" }
+
+/// Closing brace.
+closing_brace = _{ "}" }
+
+/// A double quote.
+double_quote = _{ "\"" }
+
+/// A single quote.
+// single_quote = _{ "'" }
+
+/// A comma.
+comma = _{ "," }
+
+/// A colon.
+colon = _{ ":" }
+
+/// A semicolon.
+semicolon = _{ ";" }
+
+/// A hashtag.
+hashtag = _{ "#" }
+
+/// A space character.
+// space = _{ " " | "\t" }
+
+/// A newline character.
+newline = _{ "\n" | "\r\n" }
+// NEWLINE
+
+/// A whitespace character.
+WHITESPACE = _{ " " | "\t" | newline }

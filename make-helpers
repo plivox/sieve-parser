@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Here do not use `envsubst` because this command does not support the default values of bash variables.
+function generate_env_from_env_sample() {
+	if [[ ! -z "${1}" && -d "${1}" ]]; then
+		local TARGET_DIRECTORY="${1}"
+	else
+		local TARGET_DIRECTORY="."
+	fi
+
+	if [[ ! -f "${TARGET_DIRECTORY}/.env.sample" ]]; then
+		echo "Not found .env.sample file in the directory: ${TARGET_DIRECTORY}"
+		exit -1
+	fi
+
+	cat "${TARGET_DIRECTORY}/.env.sample" |
+		tr -s '\n' '\n' | sed '/^\s*#/d' | xargs -I {} sh -c 'eval echo {}'
+}
