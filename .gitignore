@@ -1,4 +1,5 @@
 /resources/*
+!/resources/assets
 /target
 .DS_Store
 .env
