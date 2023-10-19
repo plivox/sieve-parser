@@ -43,7 +43,7 @@ pub fn tree<'n>(pairs: Pairs<Rule>, mut nodes: Vec<Box<Node>>) -> Vec<Box<Node>>
         match pair.as_rule() {
             Rule::EOI => {}
             //
-            // Special For grouping test nodes
+            // Special rule for grouping test nodes
             //
             Rule::test => {
                 let children = tree(pair.clone().into_inner(), nodes.clone());
