@@ -31,3 +31,10 @@ jobs:
 
       - name: Test
         run: cargo test --release
+
+      - name: Debug
+        run: ls -R target
+
+      # - uses: taiki-e/install-action@parse-changelog
+      # - name: Generate Changelog
+      #   run: parse-changelog header.md
