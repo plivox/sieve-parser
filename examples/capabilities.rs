@@ -17,7 +17,7 @@ fn main() {
 
     let capabilities = nodes.into_iter().map(|n| match *n {
         ControlRequire(n) => n.capabilities,
-        _ => LiteralTypes::Array(vec![]),
+        _ => Some(LiteralTypes::Array(vec![])),
     });
 
     println!("{:#?}", capabilities);

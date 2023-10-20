@@ -8,4 +8,7 @@ generate-env-from-env-sample:
 build:
 	cargo build --release --all-features
 
+test:
+	cargo test --release --all-features
+
 .PHONY: $(PHONY)

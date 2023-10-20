@@ -29,10 +29,10 @@ jobs:
       - name: Build
         # env:
         #   RUSTFLAGS: -C target-feature=+crt-static
-        run: cargo build --release
+        run: make build
 
       - name: Test
-        run: cargo test --release
+        run: make test
 
       - name: Debug
         env:
