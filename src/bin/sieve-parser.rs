@@ -2,8 +2,7 @@ use clap::Parser;
 use std::io::{self, prelude::*};
 use std::path::PathBuf;
 
-use lib::grammar::ast::node::tree;
-use lib::grammar::parser::parse;
+use lib::grammar::{ast::node::tree, parser::parse};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None, arg_required_else_help = true)]

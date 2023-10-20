@@ -6,6 +6,6 @@ generate-env-from-env-sample:
 	@${SHELL} -c ". .make-helpers; generate_env_from_env_sample .devcontainer"
 
 build:
-	cargo build --release
+	cargo build --release --all-features
 
 .PHONY: $(PHONY)

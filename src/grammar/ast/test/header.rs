@@ -1,8 +1,8 @@
 use pest::iterators::Pair;
 use serde::Serialize;
 
-use crate::grammar::ast::comparators::Comparators;
 use crate::grammar::ast::literal::{Literal, LiteralTypes};
+use crate::grammar::ast::Comparators;
 use crate::grammar::parser::Rule;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize)]
@@ -28,27 +28,27 @@ impl<'r> From<Pair<'r, Rule>> for TestHeader {
         let mut test_header = Self::default();
 
         for p in pair.into_inner().into_iter() {
+            let inner = match p.clone().into_inner().next() {
+                Some(inner) => inner,
+                None => p.clone(),
+            };
+
             match p.as_rule() {
                 Rule::comparators => {
-                    test_header.comparators = Some(Comparators::from(p));
+                    test_header.comparators = Some(Comparators::from(inner));
                 }
                 Rule::test_header_argument_header => {
-                    let l = Literal::from(p.into_inner().next().unwrap());
-                    test_header.header = Some(l.inner());
+                    test_header.header = Some(Literal::from(inner).inner());
                 }
                 Rule::test_header_argument_key => {
-                    let l = Literal::from(p.into_inner().next().unwrap());
-                    // println!("l: {:#?}", l);
-                    test_header.key = Some(l.inner());
+                    test_header.key = Some(Literal::from(inner).inner());
                 }
                 _ => {
-                    println!("Unknown rule: {:?}", p.as_rule());
+                    unreachable!("Unexpected {:?} token inside test header", p.as_rule());
                 }
             }
         }
 
-        // let inner = pair.into_inner().next().unwrap();
-        //
         // pair.into_inner()
         //     .for_each(|p: Pair<'r, Rule>| match p.as_rule() {
         //         Rule::comparators => {
@@ -64,23 +64,6 @@ impl<'r> From<Pair<'r, Rule>> for TestHeader {
         //             println!("Unknown rule: {:?}", p.as_rule());
         //         }
         //     });
-
-        // println!("{:#?}", pair);
-        // let mut pairs = pair.into_inner().into_iter();
-        // for pair in pairs {
-        //     println!("{:#?}", pair.as_rule());
-        // }
-        // pairs.for_each(|p: Pair<'r, Rule>| {
-        //     println!("{:#?}", p);
-        // }
-        // let ty = if pairs.peek().is_some() {
-        //     // Ty::from_pair(
-        //     //     expect!(pairs, Rule::type_specifier, "type specifier", span),
-        //     //     context,
-        //     // )?
-        // } else {
-        //     // return Err(AstError::new("Unexpected end of tokens.", span));
-        // };
 
         test_header
     }

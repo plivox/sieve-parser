@@ -137,6 +137,10 @@ action_redirect = {
     "redirect" ~ string ~ semicolon
 }
 
+action_redirect_address = {
+    string
+}
+
 action_keep = {
     "keep" ~ semicolon
 }

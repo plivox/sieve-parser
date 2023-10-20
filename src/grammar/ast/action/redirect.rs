@@ -1,26 +1,28 @@
 use pest::iterators::Pair;
 use serde::Serialize;
 
-// use crate::grammar::ast::literal::{Literal, LiteralTypes};
+use crate::grammar::ast::literal::{Literal, LiteralTypes};
 use crate::grammar::parser::Rule;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind")]
-pub struct ActionRedirect {}
+pub struct ActionRedirect {
+    address: Option<LiteralTypes>,
+}
 
 impl Default for ActionRedirect {
     fn default() -> Self {
-        Self {}
+        Self { address: None }
     }
 }
 
 impl<'r> From<Pair<'r, Rule>> for ActionRedirect {
     fn from(pair: Pair<'r, Rule>) -> Self {
-        let _ = pair;
-        Self::default()
+        let address = Some(Literal::from(pair.into_inner().next().unwrap()).inner());
 
-        // let mut test_redirect = Self::default();
-        // ...
-        // test_redirect
+        Self {
+            address,
+            ..Self::default()
+        }
     }
 }

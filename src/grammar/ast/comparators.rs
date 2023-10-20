@@ -22,7 +22,7 @@ impl<'r> From<Pair<'r, Rule>> for Comparators {
             ":count" => Comparators::Count,
             ":regex" => Comparators::Regex,
             _ => {
-                unreachable!("Unexpected {:?} comparators", pair.as_rule())
+                unreachable!("Unexpected {:?} comparator", pair.as_rule())
             }
         }
     }

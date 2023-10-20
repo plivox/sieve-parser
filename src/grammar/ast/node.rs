@@ -80,6 +80,7 @@ pub fn tree<'n>(pairs: Pairs<Rule>, mut nodes: Vec<Box<Node>>) -> Vec<Box<Node>>
                     }
                 };
 
+                // nodes.push(Box::new(node));
                 nodes.push(Box::new(node));
             }
         }
