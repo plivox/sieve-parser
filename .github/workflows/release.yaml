@@ -27,13 +27,29 @@ jobs:
           fetch-depth: 1
 
       - name: Build
+        env:
+          RUSTFLAGS: -C target-feature=+crt-static
         run: cargo build --release
 
       - name: Test
         run: cargo test --release
 
       - name: Debug
-        run: ls -R target
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          UPLOAD_URL=$(curl -s https://api.github.com/repos/plivox/sieve-parser/releases/tags/v0.1.1 | jq -r ".upload_url")
+
+          pushd target/release
+            # tar caf sieve-parser-linux-x86_64-v0.1.1.zip LICENSE sieve-parser
+            zip -9r sieve-parser-linux-x86_64-v0.1.1.zip LICENSE sieve-parser
+
+            curl -X POST \
+                  --data-binary @"sieve-parser-linux-x86_64-v0.1.1.zip" \
+                  -H 'Content-Type: application/octet-stream' \
+                  -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                  "${UPLOAD_URL}?name=sieve-parser-linux-x86_64-v0.1.1.zip"
+          popd
 
       # - uses: taiki-e/install-action@parse-changelog
       # - name: Generate Changelog
