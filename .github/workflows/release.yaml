@@ -40,6 +40,10 @@ jobs:
         run: |
           UPLOAD_URL=$(curl -s https://api.github.com/repos/plivox/sieve-parser/releases/tags/v0.1.1 | jq -r ".upload_url")
 
+          if [[ "$UPLOAD_URL" != "" ]]; then
+            UPLOAD_URL=${UPLOAD_URL/\{?name,label\}/}
+          fi
+
           pushd target/release
             # tar caf sieve-parser-linux-x86_64-v0.1.1.zip LICENSE sieve-parser
             zip -9r sieve-parser-linux-x86_64-v0.1.1.zip LICENSE sieve-parser
