@@ -38,21 +38,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          UPLOAD_URL=$(curl -s https://api.github.com/repos/plivox/sieve-parser/releases/tags/v0.1.1 | jq -r ".upload_url")
+          UPLOAD_URL=$(curl -s https://api.github.com/repos/plivox/sieve-parser/releases/tags/v0.1.2 | jq -r ".upload_url")
 
           if [[ "$UPLOAD_URL" != "" ]]; then
             UPLOAD_URL=${UPLOAD_URL/\{?name,label\}/}
           fi
 
           pushd target/release
-            # tar caf sieve-parser-linux-x86_64-v0.1.1.zip LICENSE sieve-parser
-            zip -9r sieve-parser-linux-x86_64-v0.1.1.zip LICENSE sieve-parser
+            # tar caf sieve-parser-linux-x86_64-v0.1.2.zip LICENSE sieve-parser
+            zip -9r sieve-parser-linux-x86_64-v0.1.2.zip LICENSE sieve-parser
 
             curl -X POST \
-                  --data-binary @"sieve-parser-linux-x86_64-v0.1.1.zip" \
+                  --data-binary @"sieve-parser-linux-x86_64-v0.1.2.zip" \
                   -H 'Content-Type: application/octet-stream' \
                   -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                  "${UPLOAD_URL}?name=sieve-parser-linux-x86_64-v0.1.1.zip"
+                  "${UPLOAD_URL}?name=sieve-parser-linux-x86_64-v0.1.2.zip"
           popd
 
       # - uses: taiki-e/install-action@parse-changelog
