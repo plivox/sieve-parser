@@ -1,5 +1,5 @@
 {
-  "name": "sieveparser",
+  "name": "sieve-parser",
   "build": {
     "dockerfile": "Dockerfile"
     // "args": {

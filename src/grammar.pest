@@ -20,7 +20,8 @@ action = _{
     action_redirect   |
     action_keep       |
     action_discard    |
-    action_vacation
+    action_vacation   |
+    action_reject
     
     // ) ~ NEWLINE?
 }
@@ -174,6 +175,22 @@ action_vacation_argument_mime = { colon ~ "mime" }
 action_vacation_argument_handle = { colon ~ "handle" ~ string }
 
 action_vacation_reason = {
+    string | multi_line_string
+}
+
+///
+/// [Action:Reject and ereject](https://datatracker.ietf.org/doc/html/rfc5429)
+///
+
+action_reject = {
+    action_reject_or_ereject ~ action_reject_reason ~ semicolon
+}
+
+action_reject_or_ereject = {
+    ("reject" | "ereject") 
+}
+
+action_reject_reason = {
     string | multi_line_string
 }
 

@@ -20,6 +20,7 @@ pub enum Node {
     ActionKeep(ActionKeep),
     ActionDiscard(ActionDiscard),
     ActionVacation(ActionVacation),
+    ActionReject(ActionReject),
 
     TestAddress(TestAddress),
     TestAllof(TestAllof),
@@ -61,6 +62,7 @@ pub fn tree<'n>(pairs: Pairs<Rule>, mut nodes: Vec<Box<Node>>) -> Vec<Box<Node>>
                     Rule::action_keep => Node::ActionKeep(ActionKeep::from(pair)),
                     Rule::action_discard => Node::ActionDiscard(ActionDiscard::from(pair)),
                     Rule::action_vacation => Node::ActionVacation(ActionVacation::from(pair)),
+                    Rule::action_reject => Node::ActionReject(ActionReject::from(pair)),
                     // Tests
                     Rule::test_address => Node::TestAddress(TestAddress::from(pair)),
                     Rule::test_allof => Node::TestAllof(TestAllof::from(pair)),
