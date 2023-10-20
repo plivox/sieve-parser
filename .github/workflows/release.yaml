@@ -27,8 +27,8 @@ jobs:
           fetch-depth: 1
 
       - name: Build
-        env:
-          RUSTFLAGS: -C target-feature=+crt-static
+        # env:
+        #   RUSTFLAGS: -C target-feature=+crt-static
         run: cargo build --release
 
       - name: Test
