@@ -74,7 +74,9 @@ pub fn tree<'n>(pairs: Pairs<Rule>, mut nodes: Vec<Box<Node>>) -> Vec<Box<Node>>
                     Rule::test_size => Node::TestSize(TestSize::from(pair)),
                     Rule::test_true => Node::TestTrue(TestTrue::from(pair)),
                     // Comment
-                    Rule::COMMENT => Node::Comment(Comment::from(pair)),
+                    Rule::hash_comment | Rule::bracketed_comment => {
+                        Node::Comment(Comment::from(pair))
+                    }
                     _ => {
                         unreachable!("Encountered unexpected rule {:?}", pair.as_rule())
                     }

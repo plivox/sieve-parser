@@ -9,35 +9,33 @@
 sieve = _{ SOI ~ action* ~ EOI }
 
 action = _{
-    // hash_comment |
-    // bracketed_comment |
-    // (
-    
-    control_require   |
-    control_condition |
-    control_stop      |
-    action_fileinto   |
-    action_redirect   |
-    action_keep       |
-    action_discard    |
-    action_vacation   |
-    action_reject
-    
-    // ) ~ NEWLINE?
+    hash_comment      |
+    bracketed_comment |
+    (
+        control_require   |
+        control_condition |
+        control_stop      |
+        action_fileinto   |
+        action_redirect   |
+        action_keep       |
+        action_discard    |
+        action_vacation   |
+        action_reject
+    ) ~ NEWLINE?
 }
 
 ///
 /// [Comments](https://datatracker.ietf.org/doc/html/rfc5228#section-2.3)
 ///
-COMMENT = { hash_comment | bracketed_comment }
+// COMMENT = { hash_comment | bracketed_comment }
 
 hash_comment = @{ hashtag ~ (!newline ~ ANY)* }
 
 bracketed_comment = @{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
 
 // bracketed_comment = _{ "/*" ~ (bracketed_comment | !"*/" ~ ANY)* ~ "*/" }
+
 // block_comment = _{ "/*" ~ (block_comment | !"*/" ~ ANY)* ~ "*/" }
-// COMMENT    = _{ block_comment | ("//" ~ (!newline ~ ANY)*) }
 
 ///
 /// [Strings](https://datatracker.ietf.org/doc/html/rfc5228#section-2.4.2)
