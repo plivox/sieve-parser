@@ -4,11 +4,11 @@ permissions:
   contents: write
 
 on:
-  # push:
-  #   tags:
-  #     - v[0-9]+.*
   push:
-    branches: [main]
+    tags:
+      - v[0-9]+.*
+  # push:
+  #   branches: [main]
 
 jobs:
   create-release:
@@ -19,58 +19,65 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      - name: Set Release Version
+        run: echo "RELEASE_VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
       - uses: taiki-e/install-action@parse-changelog
+
       - name: Create Release and delete if exists
+        if: env.RELEASE_VERSION
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete --yes v0.1.2
-          parse-changelog CHANGELOG.md 0.1.2 | gh release create v0.1.2 --title 0.1.2 --notes-file -
+          gh release delete --yes ${RELEASE_VERSION}
+          parse-changelog CHANGELOG.md ${RELEASE_VERSION} | \
+            gh release create ${GITHUB_REF_NAME} --title ${RELEASE_VERSION} --notes-file -
 
-  build-release:
-    name: Build Release
-    strategy:
-      matrix:
-        platform:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            assets-suffix: x86_64-linux
+  # build-release:
+  #   name: Build Release
+  #   strategy:
+  #     matrix:
+  #       platform:
+  #         - os: ubuntu-latest
+  #           target: x86_64-unknown-linux-gnu
+  #           assets-suffix: x86_64-linux
 
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            assets-suffix: aarch64-linux
+  #         - os: ubuntu-latest
+  #           target: aarch64-unknown-linux-gnu
+  #           assets-suffix: aarch64-linux
 
-          # - os: macos-latest
-          #   target: x86_64-apple-darwin
+  #         # - os: macos-latest
+  #         #   target: x86_64-apple-darwin
 
-          # - os: windows-latest
-          #   target: x86_64-pc-windows-gnu
-    runs-on: ${{ matrix.platform.os }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
+  #         # - os: windows-latest
+  #         #   target: x86_64-pc-windows-gnu
+  #   runs-on: ${{ matrix.platform.os }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 1
 
-      - name: Install Rust Toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: stable
-          target: ${{ matrix.platform.target }}
+  #     - name: Install Rust Toolchain
+  #       uses: actions-rust-lang/setup-rust-toolchain@v1
+  #       with:
+  #         toolchain: stable
+  #         target: ${{ matrix.platform.target }}
 
-      - name: Build
-        run: make build
+  #     - name: Build
+  #       run: make build
 
-      - name: Test
-        run: make test
+  #     - name: Test
+  #       run: make test
 
-      - name: Upload assets files
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          ASSET_NAME=sieve-parser-${{ matrix.platform.assets-suffix }}-v0.1.2.zip
+  #     - name: Upload assets files
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       run: |
+  #         ASSET_NAME=sieve-parser-${{ matrix.platform.assets-suffix }}-v0.1.2.zip
 
-          pushd target/release
-            zip -9r ${ASSET_NAME} ../../LICENSE sieve-parser
-            gh release upload --clobber v0.1.2 ${ASSET_NAME}
-          popd
+  #         pushd target/release
+  #           zip -9r ${ASSET_NAME} ../../LICENSE sieve-parser
+  #           gh release upload --clobber v0.1.2 ${ASSET_NAME}
+  #         popd
