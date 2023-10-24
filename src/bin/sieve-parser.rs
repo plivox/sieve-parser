@@ -43,7 +43,8 @@ fn main() {
     let pairs = parse(&contents).unwrap_or_else(|e| panic!("{}", e));
     let nodes = tree(pairs.clone(), vec![]);
 
-    io::stdout()
-        .write_all(serde_json::to_string_pretty(&nodes).unwrap().as_bytes())
-        .unwrap();
+    let mut json = serde_json::to_string_pretty(&nodes).unwrap();
+    json.push_str("\n");
+
+    io::stdout().write_all(json.as_bytes()).unwrap();
 }

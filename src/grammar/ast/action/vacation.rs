@@ -32,7 +32,7 @@ impl Default for ActionVacation {
 
 impl<'r> From<Pair<'r, Rule>> for ActionVacation {
     fn from(pair: Pair<'r, Rule>) -> Self {
-        let mut test_vacation = Self::default();
+        let mut action_vacation = Self::default();
 
         for p in pair.into_inner().into_iter() {
             let inner = match p.clone().into_inner().next() {
@@ -42,25 +42,25 @@ impl<'r> From<Pair<'r, Rule>> for ActionVacation {
 
             match p.as_rule() {
                 Rule::action_vacation_argument_days => {
-                    test_vacation.days = Some(Literal::from(inner).inner());
+                    action_vacation.days = Some(Literal::from(inner).inner());
                 }
                 Rule::action_vacation_argument_subject => {
-                    test_vacation.subject = Some(Literal::from(inner).inner());
+                    action_vacation.subject = Some(Literal::from(inner).inner());
                 }
                 Rule::action_vacation_argument_from => {
-                    test_vacation.from = Some(Literal::from(inner).inner());
+                    action_vacation.from = Some(Literal::from(inner).inner());
                 }
                 Rule::action_vacation_argument_addresses => {
-                    test_vacation.addresses = Some(Literal::from(inner).inner());
+                    action_vacation.addresses = Some(Literal::from(inner).inner());
                 }
                 Rule::action_vacation_argument_mime => {
-                    test_vacation.mime = Some(LiteralTypes::Boolean(true));
+                    action_vacation.mime = Some(LiteralTypes::Boolean(true));
                 }
                 Rule::action_vacation_argument_handle => {
-                    test_vacation.handle = Some(Literal::from(inner).inner());
+                    action_vacation.handle = Some(Literal::from(inner).inner());
                 }
                 Rule::action_vacation_reason => {
-                    test_vacation.reason = Some(Literal::from(inner).inner());
+                    action_vacation.reason = Some(Literal::from(inner).inner());
                 }
                 _ => {
                     println!("Unknown rule: {:?}", p.as_rule());
@@ -68,6 +68,6 @@ impl<'r> From<Pair<'r, Rule>> for ActionVacation {
             };
         }
 
-        test_vacation
+        action_vacation
     }
 }

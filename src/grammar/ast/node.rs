@@ -21,6 +21,7 @@ pub enum Node {
     ActionDiscard(ActionDiscard),
     ActionVacation(ActionVacation),
     ActionReject(ActionReject),
+    ActionNotify(ActionNotify),
 
     TestAddress(TestAddress),
     TestAllof(TestAllof),
@@ -39,7 +40,7 @@ pub fn tree<'n>(pairs: Pairs<Rule>, mut nodes: Vec<Box<Node>>) -> Vec<Box<Node>>
     let mut sieve = pairs.into_iter();
 
     while let Some(pair) = sieve.next() {
-        // println!("while(pair): {:?}", pair.as_rule());
+        // println!("while(pair): {:#?}", pair);
 
         match pair.as_rule() {
             Rule::EOI => {}
@@ -53,7 +54,11 @@ pub fn tree<'n>(pairs: Pairs<Rule>, mut nodes: Vec<Box<Node>>) -> Vec<Box<Node>>
             _ => {
                 let node = match pair.as_rule() {
                     // Controls
-                    Rule::control_condition => Node::ControlCondition(ControlCondition::from(pair)),
+                    Rule::control_condition_if
+                    | Rule::control_condition_elsif
+                    | Rule::control_condition_else => {
+                        Node::ControlCondition(ControlCondition::from(pair))
+                    }
                     Rule::control_require => Node::ControlRequire(ControlRequire::from(pair)),
                     Rule::control_stop => Node::ControlStop(ControlStop::from(pair)),
                     // Actions
@@ -63,6 +68,7 @@ pub fn tree<'n>(pairs: Pairs<Rule>, mut nodes: Vec<Box<Node>>) -> Vec<Box<Node>>
                     Rule::action_discard => Node::ActionDiscard(ActionDiscard::from(pair)),
                     Rule::action_vacation => Node::ActionVacation(ActionVacation::from(pair)),
                     Rule::action_reject => Node::ActionReject(ActionReject::from(pair)),
+                    Rule::action_notify => Node::ActionNotify(ActionNotify::from(pair)),
                     // Tests
                     Rule::test_address => Node::TestAddress(TestAddress::from(pair)),
                     Rule::test_allof => Node::TestAllof(TestAllof::from(pair)),
@@ -74,7 +80,7 @@ pub fn tree<'n>(pairs: Pairs<Rule>, mut nodes: Vec<Box<Node>>) -> Vec<Box<Node>>
                     Rule::test_size => Node::TestSize(TestSize::from(pair)),
                     Rule::test_true => Node::TestTrue(TestTrue::from(pair)),
                     // Comment
-                    Rule::hash_comment | Rule::bracketed_comment => {
+                    Rule::COMMENT | Rule::hash_comment | Rule::bracketed_comment => {
                         Node::Comment(Comment::from(pair))
                     }
                     _ => {
@@ -82,7 +88,6 @@ pub fn tree<'n>(pairs: Pairs<Rule>, mut nodes: Vec<Box<Node>>) -> Vec<Box<Node>>
                     }
                 };
 
-                // nodes.push(Box::new(node));
                 nodes.push(Box::new(node));
             }
         }

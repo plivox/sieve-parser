@@ -9,33 +9,26 @@
 sieve = _{ SOI ~ action* ~ EOI }
 
 action = _{
-    hash_comment      |
-    bracketed_comment |
-    (
-        control_require   |
-        control_condition |
-        control_stop      |
-        action_fileinto   |
-        action_redirect   |
-        action_keep       |
-        action_discard    |
-        action_vacation   |
-        action_reject
-    ) ~ NEWLINE?
+    control_require   |
+    control_condition |
+    control_stop      |
+    action_fileinto   |
+    action_redirect   |
+    action_keep       |
+    action_discard    |
+    action_vacation   |
+    action_reject     |
+    action_notify
 }
 
 ///
 /// [Comments](https://datatracker.ietf.org/doc/html/rfc5228#section-2.3)
 ///
-// COMMENT = { hash_comment | bracketed_comment }
+COMMENT = { hash_comment | bracketed_comment }
 
 hash_comment = @{ hashtag ~ (!newline ~ ANY)* }
 
 bracketed_comment = @{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
-
-// bracketed_comment = _{ "/*" ~ (bracketed_comment | !"*/" ~ ANY)* ~ "*/" }
-
-// block_comment = _{ "/*" ~ (block_comment | !"*/" ~ ANY)* ~ "*/" }
 
 ///
 /// [Strings](https://datatracker.ietf.org/doc/html/rfc5228#section-2.4.2)
@@ -102,10 +95,22 @@ comparators = {
 /// [Control](https://datatracker.ietf.org/doc/html/rfc5228#section-4)
 ///
 
-control_condition = {
-    "if" ~ test ~ opening_brace ~ action* ~ closing_brace ~
-    ("elsif" ~ test ~ opening_brace ~ action* ~ closing_brace)* ~
-    ("else" ~ opening_brace ~ action* ~ closing_brace)?
+control_condition = _{
+    control_condition_if ~
+    control_condition_elsif* ~
+    control_condition_else?
+}
+
+control_condition_if = {
+    "if" ~ test ~ opening_brace ~ action* ~ closing_brace
+}
+
+control_condition_elsif = {
+    "elsif" ~ test ~ opening_brace ~ action* ~ closing_brace
+}
+
+control_condition_else = {
+    "else" ~ opening_brace ~ action* ~ closing_brace
 }
 
 control_require = {
@@ -133,10 +138,6 @@ action_fileinto_parameters = {
 
 action_redirect = {
     "redirect" ~ string ~ semicolon
-}
-
-action_redirect_address = {
-    string
 }
 
 action_keep = {
@@ -176,40 +177,64 @@ action_vacation_argument_mime = { colon ~ "mime" }
 
 action_vacation_argument_handle = { colon ~ "handle" ~ string }
 
-action_vacation_reason = {
-    string | multi_line_string
-}
+action_vacation_reason = { string | multi_line_string }
 
 ///
-/// [Action:Reject and ereject](https://datatracker.ietf.org/doc/html/rfc5429)
+/// [Action:Reject](https://datatracker.ietf.org/doc/html/rfc5429)
 ///
 
 action_reject = {
     action_reject_or_ereject ~ action_reject_reason ~ semicolon
 }
 
-action_reject_or_ereject = {
-    ("reject" | "ereject") 
+action_reject_or_ereject = { ("reject" | "ereject") }
+
+action_reject_reason = { string | multi_line_string }
+
+///
+/// [Action:Notify](https://datatracker.ietf.org/doc/html/rfc5435)
+///
+
+action_notify = {
+    "notify" ~ action_notify_arguments* ~ action_notify_method? ~ semicolon
 }
 
-action_reject_reason = {
-    string | multi_line_string
+action_notify_arguments = _{
+    action_notify_argument_from       |
+    action_notify_argument_importance |
+    action_notify_argument_options    |
+    action_notify_argument_message    |
+    action_notify_argument_method
 }
+
+action_notify_argument_from = { colon ~ "from" ~ string }
+
+action_notify_argument_importance = { colon ~ "importance" ~ string }
+
+action_notify_argument_options = { colon ~ "options" ~ (string | array) }
+
+action_notify_argument_message = { colon ~ "message" ~ string }
+
+action_notify_argument_method = { colon ~ "method" ~ string }
+
+action_notify_method = { string | multi_line_string }
 
 ///
 /// [Test](https://datatracker.ietf.org/doc/html/rfc5228#section-5)
 ///
 test = {
     test_not? ~ (
-        test_address  |
-        test_allof    |
-        test_anyof    |
-        test_envelope |
-        test_exists   |
-        test_false    |
-        test_header   |
-        test_size     |
-        test_true
+        test_address                  |
+        test_allof                    |
+        test_anyof                    |
+        test_envelope                 |
+        test_exists                   |
+        test_false                    |
+        test_header                   |
+        test_size                     |
+        test_true                     |
+        test_valid_notify_method      |
+        test_notify_method_capability
     )
 }
 
@@ -257,13 +282,9 @@ test_header = {
     "header" ~ comparators ~ test_header_argument_header ~ test_header_argument_key
 }
 
-test_header_argument_header = {
-    (string | array)
-}
+test_header_argument_header = { (string | array) }
 
-test_header_argument_key = {
-    (string | array)
-}
+test_header_argument_key = { (string | array) }
 
 test_not = {
     "not"
@@ -273,13 +294,35 @@ test_size = {
     "size" ~ colon ~ test_size_argument ~ number ~ quantifier?
 }
 
-test_size_argument = {
-    ("over" | "under")
-}
+test_size_argument = { ("over" | "under") }
 
 test_true = {
     true
 }
+
+///
+/// [Action:Notify](https://datatracker.ietf.org/doc/html/rfc5435)
+///
+
+test_valid_notify_method = {
+    "valid_notify_method" ~ test_valid_notify_method_notification_uris ~ semicolon
+}
+
+test_valid_notify_method_notification_uris = { array }
+
+test_notify_method_capability = {
+    "notify_method_capability" ~ 
+    comparators? ~ 
+    test_notify_method_capability_notification_uri ~ test_notify_method_capability_notification_capability ~ 
+    test_notify_method_capability_key ~ 
+    semicolon
+}
+
+test_notify_method_capability_notification_uri = { string }
+
+test_notify_method_capability_notification_capability = { string }
+
+test_notify_method_capability_key = { array }
 
 ///
 /// Base Types
