@@ -30,7 +30,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete --yes ${GITHUB_REF_NAME} >/dev/null 2>&1
+          gh release delete --yes ${GITHUB_REF_NAME} >/dev/null 2>&1 || true
           parse-changelog CHANGELOG.md ${RELEASE_VERSION} | \
             gh release create ${GITHUB_REF_NAME} --title ${RELEASE_VERSION} --notes-file -
 
