@@ -30,9 +30,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view v0.1.2 >/dev/null 2>&1
-          if [[ $? == 0 ]]; then
-            gh release delete --yes ${RELEASE_VERSION}
+          # If release already exists, delete it
+          gh release view ${GITHUB_REF_NAME} >/dev/null 2>&1
+          if [[ \$? == 0 ]]; then
+            gh release delete --yes ${GITHUB_REF_NAME}
           fi
 
           parse-changelog CHANGELOG.md ${RELEASE_VERSION} | \
