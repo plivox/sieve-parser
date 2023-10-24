@@ -34,6 +34,7 @@ jobs:
 
   build-release:
     name: Build Release
+    needs: create-release
     strategy:
       matrix:
         platform:
@@ -50,8 +51,8 @@ jobs:
 
           # - os: windows-latest
           #   target: x86_64-pc-windows-gnu
+
     runs-on: ${{ matrix.platform.os }}
-    if: env.RELEASE_VERSION
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -74,9 +75,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          echo ${RELEASE_VERSION}
+
           ASSET_NAME=sieve-parser-${{ matrix.platform.assets-suffix }}-v0.1.2.zip
 
           pushd target/release
             zip -9r ${ASSET_NAME} ../../LICENSE sieve-parser
-            gh release upload --clobber v0.1.2 ${ASSET_NAME}
+            gh release upload --clobber ${GITHUB_REF_NAME} ${ASSET_NAME}
           popd
