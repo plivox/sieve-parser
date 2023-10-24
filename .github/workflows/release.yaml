@@ -11,58 +11,66 @@ on:
     branches: [main]
 
 jobs:
-  release:
+  create-release:
     name: Create Release
     runs-on: ubuntu-latest
     steps:
-      - name: Install Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: stable
-          target: x86_64-unknown-linux-gnu
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-
-      - name: Build
-        run: make build
-        # env:
-        #   RUSTFLAGS: -C target-feature=+crt-static
-
-      - name: Test
-        run: make test
-
       - uses: taiki-e/install-action@parse-changelog
-      - name: Create Release
+      - name: Create Release and delete if exists
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release delete --yes v0.1.2
           parse-changelog CHANGELOG.md 0.1.2 | gh release create v0.1.2 --title 0.1.2 --notes-file -
 
+  build-release:
+    name: Build Release
+    strategy:
+      matrix:
+        platform:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            assets-suffix: x86_64-linux
+
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            assets-suffix: aarch64-linux
+
+          # - os: macos-latest
+          #   target: x86_64-apple-darwin
+
+          # - os: windows-latest
+          #   target: x86_64-pc-windows-gnu
+    runs-on: ${{ matrix.platform.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install Rust Toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.platform.target }}
+
+      - name: Build
+        run: make build
+
+      - name: Test
+        run: make test
+
+      - name: Upload assets files
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ASSET_NAME=sieve-parser-${{ matrix.platform.assets-suffix }}-v0.1.2.zip
+
           pushd target/release
-            # tar caf sieve-parser-linux-x86_64-v0.1.2.zip LICENSE sieve-parser
-            zip -9r sieve-parser-linux-x86_64-v0.1.2.zip LICENSE sieve-parser
-            
-            gh release upload --clobber v0.1.2 sieve-parser-linux-x86_64-v0.1.2.zip
+            zip -9r ${ASSET_NAME} ../../LICENSE sieve-parser
+            gh release upload --clobber v0.1.2 ${ASSET_NAME}
           popd
-
-        # run: |
-        #   UPLOAD_URL=$(curl -s https://api.github.com/repos/plivox/sieve-parser/releases/tags/v0.1.2 | jq -r ".upload_url")
-
-        #   if [[ "$UPLOAD_URL" != "" ]]; then
-        #     UPLOAD_URL=${UPLOAD_URL/\{?name,label\}/}
-        #   fi
-
-        #   pushd target/release
-        #     # tar caf sieve-parser-linux-x86_64-v0.1.2.zip LICENSE sieve-parser
-        #     zip -9r sieve-parser-linux-x86_64-v0.1.2.zip LICENSE sieve-parser
-
-        #     gh release upload --clobber v0.1.2 sieve-parser-linux-x86_64-v0.1.2.zip
-        #   popd
-
-      # - uses: taiki-e/install-action@parse-changelog
-      # - name: Generate Changelog
-      #   run: parse-changelog header.md
