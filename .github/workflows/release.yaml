@@ -78,10 +78,9 @@ jobs:
       #   with:
       #     platforms: ${{ matrix.builder.platform }}
 
-      # - name: Cache Docker images
-      #   uses: ScribeMD/docker-cache@0.3.6
-      #   with:
-      #     key: ${{ matrix.builder.os }}-docker-${{ matrix.builder.platform }}
+      - name: Create Docker cache directory
+        run: |
+          mkdir -p /tmp/docker-cache
 
       - name: Restore Docker cache
         id: docker-cache-restore
@@ -91,20 +90,16 @@ jobs:
             /tmp/docker-cache
           key: ${{ matrix.builder.os }}-docker-${{ matrix.builder.target }}
 
+      - name: Load Docker image from cache
+        run: |
+          if [[ -f /tmp/docker-cache/rust-linux-darwin-builder.tar ]]; then
+            docker load --input rust-linux-darwin-builder.tar
+          fi
+
       # - name: Uncompress Docker overlay2 cache
       #   if: steps.cache-docker-restore.outputs.cache-hit != 'true'
       #   run: |
       #     tar -xzf /tmp/docker-overlay2.tar.gz -C /tmp/docker/overlay2/
-
-      - name: Save Docker images
-        run: |
-          mkdir -p /tmp/docker-cache
-          pushd /tmp/docker-cache
-            if [[ -f node-14-alpine.tar.gz ]]; then
-              rm -f node-14-alpine.tar.gz
-            fi
-            docker save node:14-alpine | gzip > node-14-alpine.tar.gz
-          popd
 
       # - name: Cache Cargo dependencies
       #   uses: actions/cache@v3
@@ -130,6 +125,18 @@ jobs:
       #       sh -c "cargo build --release --all-features --target ${{ matrix.builder.target }}"
 
       #     ls -l target/${{ matrix.builder.target }}/release
+
+      - name: Build and upload assets files
+        run: |
+          docker pull --platform ${{ matrix.builder.platform }} \
+            joseluisq/rust-linux-darwin-builder:1.73.0
+
+      - name: Save Docker image to cache
+        run: |
+          if [[ ! -f /tmp/docker-cache/rust-linux-darwin-builder.tar ]]; then
+            docker save -o rust-linux-darwin-builder.tar \
+              joseluisq/rust-linux-darwin-builder:1.73.0
+          fi
 
       - name: Save Docker cache
         id: docker-cache-save
