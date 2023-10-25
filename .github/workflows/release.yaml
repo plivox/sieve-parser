@@ -83,6 +83,17 @@ jobs:
           # restore-keys: |
           #   ${{ runner.os }}-docker-
 
+      # - name: Cache Cargo dependencies
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: |
+      #       ~/.cargo/bin/
+      #       ~/.cargo/registry/index/
+      #       ~/.cargo/registry/cache/
+      #       ~/.cargo/git/db/
+      #       target/
+      #     key: ${{ matrix.builder.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Build and upload assets files
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
