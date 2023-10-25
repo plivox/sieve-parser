@@ -78,8 +78,9 @@ jobs:
       - name: Cache Docker images
         uses: actions/cache@v3
         with:
-          path: /var/lib/docker/overlay2/
-          key: ${{ matrix.builder.os }}-docker-${{ matrix.builder.platform }}
+          path: |
+            /var/lib/docker/overlay2/
+          key: ${{ matrix.builder.os }}-docker-${{ matrix.builder.target }}
           # restore-keys: |
           #   ${{ runner.os }}-docker-
 
@@ -97,9 +98,14 @@ jobs:
       - name: Build and upload assets files
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ASSET_NAME: sieve-parser-${{ matrix.builder.assets-suffix }}.zip
         run: |
-          docker run --platform ${{ matrix.builder.platform }} --rm \
-            --volume ${{ github.workspace }}:/workspace --workdir /workspace \
+          whoami
+          echo ${ASSET_NAME}
+
+          docker run --platform ${{ matrix.builder.platform }} --rm --workdir /workspace \
+            --volume ${{ github.workspace }}:/workspace \
+            --volume /root/.cargo:/root/.cargo \
             joseluisq/rust-linux-darwin-builder:1.73.0 \
             sh -c "cargo build --release --all-features --target ${{ matrix.builder.target }}"
 
