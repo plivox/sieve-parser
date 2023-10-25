@@ -48,15 +48,15 @@ jobs:
             target: aarch64-unknown-linux-gnu
             assets-suffix: aarch64-linux
 
-          - os: ubuntu-latest
-            platform: linux/amd64
-            target: x86_64-apple-darwin
-            assets-suffix: x86_64-darwin
+          # - os: ubuntu-latest
+          #   platform: linux/amd64
+          #   target: x86_64-apple-darwin
+          #   assets-suffix: x86_64-darwin
 
-          - os: ubuntu-latest
-            platform: linux/arm64
-            target: aarch64-apple-darwin
-            assets-suffix: aarch64-darwin
+          # - os: ubuntu-latest
+          #   platform: linux/arm64
+          #   target: aarch64-apple-darwin
+          #   assets-suffix: aarch64-darwin
 
     runs-on: ${{ matrix.builder.os }}
     steps:
@@ -70,11 +70,13 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
 
       - name: Debug
         run: |
           docker run --platform ${{ matrix.builder.platform }} -it --rm \
-            --volume "${{ github.workspace }}:/workspace --workdir /workspace \
+            --volume ${{ github.workspace }}:/workspace --workdir /workspace \
             joseluisq/rust-linux-darwin-builder:1.73.0 \
             sh -c "cargo build --release --all-features --target ${{ matrix.builder.target }}"
 
