@@ -50,10 +50,10 @@ jobs:
             target: aarch64-unknown-linux-gnu
             assets-suffix: aarch64-linux
 
-          # - os: ubuntu-latest
-          #   platform: linux/amd64
-          #   target: x86_64-apple-darwin
-          #   assets-suffix: x86_64-darwin
+          - os: ubuntu-latest
+            platform: linux/amd64
+            target: x86_64-apple-darwin
+            assets-suffix: x86_64-darwin
 
           # - os: ubuntu-latest
           #   platform: linux/arm64
@@ -75,14 +75,24 @@ jobs:
         with:
           platforms: ${{ matrix.builder.platform }}
 
-      - name: Debug
+      - name: Build and upload assets files
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           docker run --platform ${{ matrix.builder.platform }} --rm \
             --volume ${{ github.workspace }}:/workspace --workdir /workspace \
             joseluisq/rust-linux-darwin-builder:1.73.0 \
             sh -c "cargo build --release --all-features --target ${{ matrix.builder.target }}"
 
-          ls -l target/release
+          ls -l target/${{ matrix.builder.target }}/release
+
+  # ASSET_NAME=sieve-parser-${{ matrix.builder.assets-suffix }}.zip
+
+  # pushd target/${{ matrix.builder.target }}/release
+  #   cp ../../../LICENSE .
+  #   zip -9r ${ASSET_NAME} LICENSE sieve-parser
+  #   gh release upload --clobber ${GITHUB_REF_NAME} ${ASSET_NAME}
+  # popd
 
   # build-release:
   #   name: Build Release
