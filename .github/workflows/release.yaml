@@ -10,6 +10,9 @@ on:
   push:
     branches: [main]
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   create-release:
     name: Create Release
@@ -75,13 +78,18 @@ jobs:
         with:
           platforms: ${{ matrix.builder.platform }}
 
-      - name: Restore Docker overlay2 cache
-        id: cache-docker-restore
-        uses: actions/cache/restore@v3
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.3.6
         with:
-          path: |
-            /var/lib/docker/overlay2/
-          key: ${{ matrix.builder.os }}-docker-${{ matrix.builder.target }}
+          key: ${{ matrix.builder.os }}-docker-${{ matrix.builder.platform }}
+
+      # - name: Restore Docker overlay2 cache
+      #   id: cache-docker-restore
+      #   uses: actions/cache/restore@v3
+      #   with:
+      #     path: |
+      #       /var/lib/docker/overlay2/
+      #     key: ${{ matrix.builder.os }}-docker-${{ matrix.builder.target }}
 
       # - name: Cache Cargo dependencies
       #   uses: actions/cache@v3
@@ -108,13 +116,14 @@ jobs:
 
           ls -l target/${{ matrix.builder.target }}/release
 
-      - name: Save Docker overlay2 cache
-        id: cache-docker-save
-        uses: actions/cache/save@v3
-        with:
-          path: |
-            /var/lib/docker/overlay2/
-          key: ${{ steps.cache-docker-restore.outputs.cache-primary-key }}
+      # - name: Save Docker overlay2 cache
+      #   id: cache-docker-save
+      #   uses: actions/cache/save@v3
+      #   with:
+      #     path: |
+      #       /var/lib/docker/overlay2/
+      #     key: ${{ steps.cache-docker-restore.outputs.cache-primary-key }}
+
 #
 # --volume /root/.cargo:/root/.cargo \
 
