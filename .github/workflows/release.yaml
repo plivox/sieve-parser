@@ -70,60 +70,74 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          platforms: ${{ matrix.builder.platform }}
-
-      - name: Cache Docker images
-        uses: ScribeMD/docker-cache@0.3.6
-        with:
-          key: ${{ matrix.builder.os }}-docker-${{ matrix.builder.platform }}
-
-      # - name: Restore Docker overlay2 cache
-      #   id: cache-docker-restore
-      #   uses: actions/cache/restore@v3
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
       #   with:
-      #     path: |
-      #       /var/lib/docker/overlay2/
-      #     key: ${{ matrix.builder.os }}-docker-${{ matrix.builder.target }}
+      #     platforms: ${{ matrix.builder.platform }}
+
+      # - name: Cache Docker images
+      #   uses: ScribeMD/docker-cache@0.3.6
+      #   with:
+      #     key: ${{ matrix.builder.os }}-docker-${{ matrix.builder.platform }}
+
+      - name: Restore Docker cache
+        id: docker-cache-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            /tmp/docker-cache
+          key: ${{ matrix.builder.os }}-docker-${{ matrix.builder.target }}
+
+      # - name: Uncompress Docker overlay2 cache
+      #   if: steps.cache-docker-restore.outputs.cache-hit != 'true'
+      #   run: |
+      #     tar -xzf /tmp/docker-overlay2.tar.gz -C /tmp/docker/overlay2/
+
+      - name: Save Docker images
+        run: |
+          mkdir -p /tmp/docker-cache
+          pushd /tmp/docker-cache
+            if [[ -f node-14-alpine.tar.gz ]]; then
+              rm -f node-14-alpine.tar.gz
+            fi
+            docker save node:14-alpine | gzip > node-14-alpine.tar.gz
+          popd
 
       # - name: Cache Cargo dependencies
       #   uses: actions/cache@v3
       #   with:
       #     path: |
-      #       ~/.cargo/bin/
       #       ~/.cargo/registry/index/
       #       ~/.cargo/registry/cache/
       #       ~/.cargo/git/db/
       #       target/
       #     key: ${{ matrix.builder.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Build and upload assets files
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ASSET_NAME: sieve-parser-${{ matrix.builder.assets-suffix }}.zip
-        run: |
-          whoami
-          echo ${ASSET_NAME}
-          docker run --platform ${{ matrix.builder.platform }} --rm --workdir /workspace \
-            --volume ${{ github.workspace }}:/workspace \
-            joseluisq/rust-linux-darwin-builder:1.73.0 \
-            sh -c "cargo build --release --all-features --target ${{ matrix.builder.target }}"
+      # - name: Build and upload assets files
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     ASSET_NAME: sieve-parser-${{ matrix.builder.assets-suffix }}.zip
+      #     CARGO_HOME: /cache/cargo/
+      #   run: |
+      #     whoami
+      #     echo ${ASSET_NAME}
+      #     docker run --platform ${{ matrix.builder.platform }} --rm --workdir /workspace \
+      #       --volume ${{ github.workspace }}:/workspace \
+      #       joseluisq/rust-linux-darwin-builder:1.73.0 \
+      #       sh -c "cargo build --release --all-features --target ${{ matrix.builder.target }}"
 
-          ls -l target/${{ matrix.builder.target }}/release
+      #     ls -l target/${{ matrix.builder.target }}/release
 
-      # - name: Save Docker overlay2 cache
-      #   id: cache-docker-save
-      #   uses: actions/cache/save@v3
-      #   with:
-      #     path: |
-      #       /var/lib/docker/overlay2/
-      #     key: ${{ steps.cache-docker-restore.outputs.cache-primary-key }}
-
+      - name: Save Docker cache
+        id: docker-cache-save
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            /tmp/docker-cache
+          key: ${{ steps.docker-cache-restore.outputs.cache-primary-key }}
 #
 # --volume /root/.cargo:/root/.cargo \
 
