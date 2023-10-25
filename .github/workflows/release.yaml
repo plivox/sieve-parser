@@ -92,9 +92,12 @@ jobs:
 
       - name: Load Docker image from cache
         run: |
-          if [[ -f /tmp/docker-cache/rust-linux-darwin-builder.tar ]]; then
-            docker load --input rust-linux-darwin-builder.tar
-          fi
+          df -h
+          pushd /tmp/docker-cache
+            if [[ -f rust-linux-darwin-builder.tar.zst ]]; then
+              zstd -dcf rust-linux-darwin-builder.tar.zst | docker load
+            fi
+          popd
 
       # - name: Uncompress Docker overlay2 cache
       #   if: steps.cache-docker-restore.outputs.cache-hit != 'true'
@@ -133,10 +136,12 @@ jobs:
 
       - name: Save Docker image to cache
         run: |
-          if [[ ! -f /tmp/docker-cache/rust-linux-darwin-builder.tar ]]; then
-            docker save -o rust-linux-darwin-builder.tar \
-              joseluisq/rust-linux-darwin-builder:1.73.0
-          fi
+          pushd /tmp/docker-cache
+            if [[ ! -f rust-linux-darwin-builder.tar.zst ]]; then
+              docker save joseluisq/rust-linux-darwin-builder:1.73.0 | \
+                zstd > rust-linux-darwin-builder.tar.zst
+            fi
+          popd
 
       - name: Save Docker cache
         id: docker-cache-save
@@ -145,6 +150,13 @@ jobs:
           path: |
             /tmp/docker-cache
           key: ${{ steps.docker-cache-restore.outputs.cache-primary-key }}
+# docker save -o rust-linux-darwin-builder.tar joseluisq/rust-linux-darwin-builder:1.73.0
+# 7,6G
+# docker save joseluisq/rust-linux-darwin-builder:1.73.0 | gzip > ust-linux-darwin-builder.tar.gz
+# 2,2G
+# docker save joseluisq/rust-linux-darwin-builder:1.73.0 | zstd > ust-linux-darwin-builder.tar.zst
+# 2,0G
+
 #
 # --volume /root/.cargo:/root/.cargo \
 
