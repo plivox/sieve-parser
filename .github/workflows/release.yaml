@@ -113,7 +113,7 @@ jobs:
           ls -l target/${{ matrix.builder.target }}/release
 
           pushd target/${{ matrix.builder.target }}/release
-            cp ../../../LICENSE .
+            sudo cp .${{ github.workspace }}/LICENSE .
             zip -9r ${ASSET_NAME} LICENSE sieve-parser
             gh release upload --clobber ${GITHUB_REF_NAME} ${ASSET_NAME}
           popd
