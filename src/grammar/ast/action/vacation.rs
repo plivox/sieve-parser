@@ -41,25 +41,25 @@ impl<'r> From<Pair<'r, Rule>> for ActionVacation {
             };
 
             match p.as_rule() {
-                Rule::action_vacation_argument_days => {
+                Rule::act_vacation_arg_days => {
                     action_vacation.days = Some(Literal::from(inner).inner());
                 }
-                Rule::action_vacation_argument_subject => {
+                Rule::act_vacation_arg_subject => {
                     action_vacation.subject = Some(Literal::from(inner).inner());
                 }
-                Rule::action_vacation_argument_from => {
+                Rule::act_vacation_arg_from => {
                     action_vacation.from = Some(Literal::from(inner).inner());
                 }
-                Rule::action_vacation_argument_addresses => {
+                Rule::act_vacation_arg_addresses => {
                     action_vacation.addresses = Some(Literal::from(inner).inner());
                 }
-                Rule::action_vacation_argument_mime => {
+                Rule::act_vacation_arg_mime => {
                     action_vacation.mime = Some(LiteralTypes::Boolean(true));
                 }
-                Rule::action_vacation_argument_handle => {
+                Rule::act_vacation_arg_handle => {
                     action_vacation.handle = Some(Literal::from(inner).inner());
                 }
-                Rule::action_vacation_reason => {
+                Rule::act_vacation_reason => {
                     action_vacation.reason = Some(Literal::from(inner).inner());
                 }
                 _ => {

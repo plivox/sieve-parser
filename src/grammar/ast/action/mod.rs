@@ -1,5 +1,6 @@
 pub mod discard;
 pub mod fileinto;
+pub mod flag;
 pub mod keep;
 pub mod notify;
 pub mod redirect;
@@ -8,6 +9,9 @@ pub mod vacation;
 
 pub use discard::ActionDiscard;
 pub use fileinto::ActionFileinto;
+pub use flag::ActionAddFlag;
+pub use flag::ActionRemoveFlag;
+pub use flag::ActionSetFlag;
 pub use keep::ActionKeep;
 pub use notify::ActionNotify;
 pub use redirect::ActionRedirect;

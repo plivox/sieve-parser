@@ -31,14 +31,14 @@ impl<'r> From<Pair<'r, Rule>> for ActionReject {
             };
 
             match p.as_rule() {
-                Rule::action_reject_or_ereject => {
+                Rule::act_reject_or_ereject => {
                     action_reject.sending = match p.as_span().as_str() {
                         "reject" => Some(LiteralTypes::String("MDN".to_string())),
                         "ereject" => Some(LiteralTypes::String("DSN".to_string())),
                         _ => None,
                     }
                 }
-                Rule::action_reject_reason => {
+                Rule::act_reject_reason => {
                     action_reject.reason = Some(Literal::from(inner).inner());
                 }
                 _ => {

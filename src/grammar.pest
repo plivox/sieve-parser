@@ -6,19 +6,24 @@
 //   ! -> Non-atomic (Stop cascading of atomics)
 //
 
+// ctl -> control
+// act -> action
+// tst -> test
+
 sieve = _{ SOI ~ action* ~ EOI }
 
 action = _{
-    control_require   |
-    control_condition |
-    control_stop      |
-    action_fileinto   |
-    action_redirect   |
-    action_keep       |
-    action_discard    |
-    action_vacation   |
-    action_reject     |
-    action_notify
+    ctl_require   |
+    ctl_condition |
+    ctl_stop      |
+    act_fileinto  |
+    act_redirect  |
+    act_keep      |
+    act_discard   |
+    act_vacation  |
+    act_reject    |
+    act_notify    |
+    act_flag
 }
 
 ///
@@ -65,19 +70,19 @@ multi_line_string_content = ${
 // :all
 //
 
-// arguments = { (tagged_argument_with_value)* }
+// arguments = { (tagged_arg_with_value)* }
 
-// tagged_arguments = _{
-//     colon ~ tagged_argument_name
+// tagged_args = _{
+//     colon ~ tagged_arg_name
 // }
 
-// tagged_argument_name = { alpha+ }
+// tagged_arg_name = { alpha+ }
 
-// tagged_argument_with_value = {
-//     colon ~ tagged_argument_name ~ tagged_argument_value?
+// tagged_arg_with_value = {
+//     colon ~ tagged_arg_name ~ tagged_arg_value?
 // }
 
-// tagged_argument_value = { (string | array) }
+// tagged_arg_value = { (string | array) }
 
 ///
 /// [Comparators](https://datatracker.ietf.org/doc/html/rfc5228#section-2.7.3)
@@ -95,234 +100,255 @@ comparators = {
 /// [Control](https://datatracker.ietf.org/doc/html/rfc5228#section-4)
 ///
 
-control_condition = _{
-    control_condition_if ~
-    control_condition_elsif* ~
-    control_condition_else?
+ctl_condition = _{
+    ctl_condition_if ~
+    ctl_condition_elsif* ~
+    ctl_condition_else?
 }
 
-control_condition_if = {
+ctl_condition_if = {
     "if" ~ test ~ opening_brace ~ action* ~ closing_brace
 }
 
-control_condition_elsif = {
+ctl_condition_elsif = {
     "elsif" ~ test ~ opening_brace ~ action* ~ closing_brace
 }
 
-control_condition_else = {
+ctl_condition_else = {
     "else" ~ opening_brace ~ action* ~ closing_brace
 }
 
-control_require = {
-    "require" ~ (string | array) ~ semicolon
-}
+ctl_require = { "require" ~ (string | array) ~ semicolon }
 
-control_stop = {
-    "stop" ~ semicolon
-}
+ctl_stop = { "stop" ~ semicolon }
 
 ///
 /// [Action](https://datatracker.ietf.org/doc/html/rfc5228#section-4)
 ///
 
-action_fileinto = {
-    "fileinto" ~ action_fileinto_parameters? ~ string ~ semicolon
+act_fileinto = {
+    "fileinto" ~ act_fileinto_args? ~ act_fileinto_mailbox ~ semicolon
 }
 
-action_fileinto_parameters = {
-    colon ~ (
-        "copy"   | // RFC 3894
-        "create"   // RFC 5490
-    )
+act_fileinto_args = _{
+    act_fileinto_arg_copy   |
+    act_fileinto_arg_create |
+    act_fileinto_arg_flags
 }
 
-action_redirect = {
-    "redirect" ~ string ~ semicolon
-}
+act_fileinto_arg_copy = { colon ~ "copy" } // RFC 3894
 
-action_keep = {
-    "keep" ~ semicolon
-}
+act_fileinto_arg_create = { colon ~ "create" } // RFC 5490
 
-action_discard = {
-    "discard" ~ semicolon
-}
+act_fileinto_arg_flags = { colon ~ "flags" ~ (string | array) } // RFC 5232
+
+act_fileinto_mailbox = { string }
+
+act_redirect = { "redirect" ~ string ~ semicolon }
+
+act_keep = { "keep" ~ act_keep_args? ~ semicolon }
+
+act_keep_args = { act_keep_arg_flags }
+
+act_keep_arg_flags = { colon ~ "flags" ~ (string | array) } // RFC 5232
+
+act_discard = { "discard" ~ semicolon }
 
 ///
 /// [Action:Vacation](https://datatracker.ietf.org/doc/rfc5230/)
 ///
 
-action_vacation = {
-    "vacation" ~ action_vacation_arguments* ~ action_vacation_reason ~ semicolon
+act_vacation = {
+    "vacation" ~ act_vacation_args* ~ act_vacation_reason ~ semicolon
 }
 
-action_vacation_arguments = _{
-    action_vacation_argument_days      |
-    action_vacation_argument_subject   |
-    action_vacation_argument_from      |
-    action_vacation_argument_addresses |
-    action_vacation_argument_mime      |
-    action_vacation_argument_handle
+act_vacation_args = _{
+    act_vacation_arg_days      |
+    act_vacation_arg_subject   |
+    act_vacation_arg_from      |
+    act_vacation_arg_addresses |
+    act_vacation_arg_mime      |
+    act_vacation_arg_handle
 }
 
-action_vacation_argument_days = { colon ~ "days" ~ number }
+act_vacation_arg_days = { colon ~ "days" ~ number }
 
-action_vacation_argument_subject = { colon ~ "subject" ~ string }
+act_vacation_arg_subject = { colon ~ "subject" ~ string }
 
-action_vacation_argument_from = { colon ~ "from" ~ string }
+act_vacation_arg_from = { colon ~ "from" ~ string }
 
-action_vacation_argument_addresses = { colon ~ "addresses" ~ (string | array) }
+act_vacation_arg_addresses = { colon ~ "addresses" ~ (string | array) }
 
-action_vacation_argument_mime = { colon ~ "mime" }
+act_vacation_arg_mime = { colon ~ "mime" }
 
-action_vacation_argument_handle = { colon ~ "handle" ~ string }
+act_vacation_arg_handle = { colon ~ "handle" ~ string }
 
-action_vacation_reason = { string | multi_line_string }
+act_vacation_reason = { string | multi_line_string }
 
 ///
 /// [Action:Reject](https://datatracker.ietf.org/doc/html/rfc5429)
 ///
 
-action_reject = {
-    action_reject_or_ereject ~ action_reject_reason ~ semicolon
-}
+act_reject = { act_reject_or_ereject ~ act_reject_reason ~ semicolon }
 
-action_reject_or_ereject = { ("reject" | "ereject") }
+act_reject_or_ereject = { ("reject" | "ereject") }
 
-action_reject_reason = { string | multi_line_string }
+act_reject_reason = { string | multi_line_string }
 
 ///
 /// [Action:Notify](https://datatracker.ietf.org/doc/html/rfc5435)
 ///
 
-action_notify = {
-    "notify" ~ action_notify_arguments* ~ action_notify_method? ~ semicolon
+act_notify = { "notify" ~ act_notify_args* ~ act_notify_method? ~ semicolon }
+
+act_notify_args = _{
+    act_notify_arg_from       |
+    act_notify_arg_importance |
+    act_notify_arg_options    |
+    act_notify_arg_message    |
+    act_notify_arg_method
 }
 
-action_notify_arguments = _{
-    action_notify_argument_from       |
-    action_notify_argument_importance |
-    action_notify_argument_options    |
-    action_notify_argument_message    |
-    action_notify_argument_method
+act_notify_arg_from = { colon ~ "from" ~ string }
+
+act_notify_arg_importance = { colon ~ "importance" ~ string }
+
+act_notify_arg_options = { colon ~ "options" ~ (string | array) }
+
+act_notify_arg_message = { colon ~ "message" ~ string }
+
+act_notify_arg_method = { colon ~ "method" ~ string }
+
+act_notify_method = { string | multi_line_string }
+
+///
+/// [Action:Imap4flags](https://datatracker.ietf.org/doc/html/rfc5232)
+///
+
+act_flag = _{ act_flag_set | act_flag_add | act_flag_remove }
+
+act_flag_set = { "setflag" ~ act_flag_args ~ semicolon }
+
+act_flag_add = { "addflag" ~ act_flag_args ~ semicolon }
+
+act_flag_remove = { "removeflag" ~ act_flag_args ~ semicolon }
+
+act_flag_args = _{
+    act_flag_arg_variable? ~ act_flag_arg_flags | act_flag_arg_flags
 }
 
-action_notify_argument_from = { colon ~ "from" ~ string }
+act_flag_arg_variable = { string }
 
-action_notify_argument_importance = { colon ~ "importance" ~ string }
-
-action_notify_argument_options = { colon ~ "options" ~ (string | array) }
-
-action_notify_argument_message = { colon ~ "message" ~ string }
-
-action_notify_argument_method = { colon ~ "method" ~ string }
-
-action_notify_method = { string | multi_line_string }
+act_flag_arg_flags = { (string | array) }
 
 ///
 /// [Test](https://datatracker.ietf.org/doc/html/rfc5228#section-5)
 ///
 test = {
-    test_not? ~ (
-        test_address                  |
-        test_allof                    |
-        test_anyof                    |
-        test_envelope                 |
-        test_exists                   |
-        test_false                    |
-        test_header                   |
-        test_size                     |
-        test_true                     |
-        test_valid_notify_method      |
-        test_notify_method_capability
+    tst_not? ~ (
+        tst_address  |
+        tst_allof    |
+        tst_anyof    |
+        tst_envelope |
+        tst_exists   |
+        tst_false    |
+        tst_header   |
+        tst_size     |
+        tst_true     |
+        tst_notify   |
+        tst_flag
     )
 }
 
-test_address = {
-    "address" ~ test_address_part? ~ test_address_operator ~ string ~ (string | array)
+tst_address = {
+    "address" ~ tst_address_part? ~ tst_address_operator ~ string ~ (string | array)
 }
 
-test_address_part = {
+tst_address_part = {
     colon ~ ("all" | "localpart" | "domain" | "user" | "detail")
 }
 
-test_address_operator = {
+tst_address_operator = {
     colon ~ ("is" | "regex" | "contains" | "matches" | "count")
 }
 
-test_allof = {
+tst_allof = {
     "allof" ~ opening_paren ~ test ~ (comma ~ test)* ~ comma? ~ closing_paren
 }
 
-test_anyof = {
+tst_anyof = {
     "anyof" ~ opening_paren ~ test ~ (comma ~ test)* ~ comma? ~ closing_paren
 }
 
-test_envelope = {
-    "envelope" ~ test_envelope_part? ~ test_envelope_operator ~ string ~ (string | array)
+tst_envelope = {
+    "envelope" ~ tst_envelope_part? ~ tst_envelope_operator ~ string ~ (string | array)
 }
 
-test_envelope_part = {
-    colon ~ ("all" | "localpart" | "domain" | "user" | "detail")
-}
+tst_envelope_part = { colon ~ ("all" | "localpart" | "domain" | "user" | "detail") }
 
-test_envelope_operator = {
-    colon ~ ("is" | "regex" | "contains" | "matches" | "count")
-}
+tst_envelope_operator = { colon ~ ("is" | "regex" | "contains" | "matches" | "count") }
 
-test_exists = {
-    "exists" ~ (string | array)
-}
+tst_exists = { "exists" ~ (string | array) }
 
-test_false = {
-    false
-}
+tst_false = { false }
 
-test_header = {
-    "header" ~ comparators ~ test_header_argument_header ~ test_header_argument_key
-}
+tst_header = { "header" ~ comparators ~ tst_header_arg_header ~ tst_header_arg_key }
 
-test_header_argument_header = { (string | array) }
+tst_header_arg_header = { (string | array) }
 
-test_header_argument_key = { (string | array) }
+tst_header_arg_key = { (string | array) }
 
-test_not = {
-    "not"
-}
+tst_not = { "not" }
 
-test_size = {
-    "size" ~ colon ~ test_size_argument ~ number ~ quantifier?
-}
+tst_size = { "size" ~ tst_size_arg ~ number ~ quantifier? }
 
-test_size_argument = { ("over" | "under") }
+tst_size_arg = { colon ~ ("over" | "under") }
 
-test_true = {
-    true
-}
+tst_true = { true }
 
 ///
-/// [Action:Notify](https://datatracker.ietf.org/doc/html/rfc5435)
+/// [Test:Notify](https://datatracker.ietf.org/doc/html/rfc5435)
 ///
 
-test_valid_notify_method = {
-    "valid_notify_method" ~ test_valid_notify_method_notification_uris ~ semicolon
+tst_notify = _{ tst_valid_notify_method | tst_notify_method_capability }
+
+tst_valid_notify_method = {
+    "valid_notify_method" ~ tst_valid_notify_method_notification_uris ~ semicolon
 }
 
-test_valid_notify_method_notification_uris = { array }
+tst_valid_notify_method_notification_uris = { array }
 
-test_notify_method_capability = {
-    "notify_method_capability" ~ 
-    comparators? ~ 
-    test_notify_method_capability_notification_uri ~ test_notify_method_capability_notification_capability ~ 
-    test_notify_method_capability_key ~ 
+tst_notify_method_capability = {
+    "notify_method_capability" ~
+    comparators? ~
+    tst_notify_method_capability_notification_uri ~
+    tst_notify_method_capability_notification_capability ~
+    tst_notify_method_capability_key ~
     semicolon
 }
 
-test_notify_method_capability_notification_uri = { string }
+tst_notify_method_capability_notification_uri = { string }
 
-test_notify_method_capability_notification_capability = { string }
+tst_notify_method_capability_notification_capability = { string }
 
-test_notify_method_capability_key = { array }
+tst_notify_method_capability_key = { array }
+
+///
+/// [Test:Imap4flags](https://datatracker.ietf.org/doc/html/rfc5232)
+///
+
+tst_flag = _{ tst_has_flag }
+
+tst_has_flag = {
+    "hasflag" ~
+    comparators? ~
+    tst_has_flag_arg_variable? ~
+    tst_has_flag_arg_flags
+}
+
+tst_has_flag_arg_variable = { (string | array) }
+
+tst_has_flag_arg_flags = { (string | array) }
 
 ///
 /// Base Types

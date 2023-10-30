@@ -37,25 +37,25 @@ impl<'r> From<Pair<'r, Rule>> for ActionNotify {
             };
 
             match p.as_rule() {
-                Rule::action_notify_argument_from => {
+                Rule::act_notify_arg_from => {
                     action_notify.from = Some(Literal::from(inner).inner());
                 }
-                Rule::action_notify_argument_importance => {
+                Rule::act_notify_arg_importance => {
                     action_notify.importance = Some(Literal::from(inner).inner());
                 }
-                Rule::action_notify_argument_options => {
+                Rule::act_notify_arg_options => {
                     action_notify.options = Some(Literal::from(inner).inner());
                 }
-                Rule::action_notify_argument_message => {
+                Rule::act_notify_arg_message => {
                     action_notify.message = Some(Literal::from(inner).inner());
                 }
                 // Before version 06 (RFC 5429), the notify method was a required argument.
                 // In version 06 and later, the notify method is optional. If the notify
                 // method is not specified, the default method is "mailto".
-                Rule::action_notify_argument_method => {
+                Rule::act_notify_arg_method => {
                     action_notify.method = Some(Literal::from(inner).inner());
                 }
-                Rule::action_notify_method => {
+                Rule::act_notify_method => {
                     action_notify.method = Some(Literal::from(inner).inner());
                 }
                 _ => {

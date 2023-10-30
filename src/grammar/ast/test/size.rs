@@ -41,7 +41,7 @@ impl<'r> From<Pair<'r, Rule>> for TestSize {
             };
 
             match p.as_rule() {
-                Rule::test_size_argument => {
+                Rule::tst_size_arg => {
                     test_size.argument = match p.as_str() {
                         "over" => Some(TestSizeArgument::Over),
                         "under" => Some(TestSizeArgument::Under),

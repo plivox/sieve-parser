@@ -15,7 +15,9 @@
     "sieve"
   ],
   "[pest]": {
-    "editor.formatOnSave": false
+    "editor.formatOnSave": false,
+    "editor.wordWrapColumn": 200,
+    "editor.wordWrap": "wordWrapColumn"
   },
   // "rust-analyzer.server.extraEnv": {
   //   // "RUSTUP_TOOLCHAIN": "${env:RUSTUP_TOOLCHAIN}"

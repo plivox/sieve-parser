@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.4] - 2023-10-24
+
+### Added
+
+- Implement `Imap4flags` actions and tests (RFC 5232)
+
+### Fixed
+
+- Fix negative condition in `if` statement
+- Fix test `exists` header value
+
 ## [0.1.3] - 2023-10-24
 
 ### Fixed

@@ -70,13 +70,13 @@ jobs:
         with:
           fetch-depth: 1
 
-      # - name: Set up QEMU
-      #   uses: docker/setup-qemu-action@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-      # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@v3
-      #   with:
-      #     platforms: ${{ matrix.builder.platform }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: ${{ matrix.builder.platform }}
 
       - name: Create Docker cache directory
         run: |
@@ -99,35 +99,24 @@ jobs:
             fi
           popd
 
-      # - name: Uncompress Docker overlay2 cache
-      #   if: steps.cache-docker-restore.outputs.cache-hit != 'true'
-      #   run: |
-      #     tar -xzf /tmp/docker-overlay2.tar.gz -C /tmp/docker/overlay2/
+      - name: Build and upload assets files
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ASSET_NAME: sieve-parser-${{ matrix.builder.assets-suffix }}.zip
+          CARGO_HOME: /cache/cargo/
+        run: |
+          docker run --platform ${{ matrix.builder.platform }} --rm --workdir /workspace \
+            --volume ${{ github.workspace }}:/workspace \
+            joseluisq/rust-linux-darwin-builder:1.73.0 \
+            sh -c "cargo build --release --all-features --target ${{ matrix.builder.target }}"
 
-      # - name: Cache Cargo dependencies
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: |
-      #       ~/.cargo/registry/index/
-      #       ~/.cargo/registry/cache/
-      #       ~/.cargo/git/db/
-      #       target/
-      #     key: ${{ matrix.builder.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          ls -l target/${{ matrix.builder.target }}/release
 
-      # - name: Build and upload assets files
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     ASSET_NAME: sieve-parser-${{ matrix.builder.assets-suffix }}.zip
-      #     CARGO_HOME: /cache/cargo/
-      #   run: |
-      #     whoami
-      #     echo ${ASSET_NAME}
-      #     docker run --platform ${{ matrix.builder.platform }} --rm --workdir /workspace \
-      #       --volume ${{ github.workspace }}:/workspace \
-      #       joseluisq/rust-linux-darwin-builder:1.73.0 \
-      #       sh -c "cargo build --release --all-features --target ${{ matrix.builder.target }}"
-
-      #     ls -l target/${{ matrix.builder.target }}/release
+          pushd target/${{ matrix.builder.target }}/release
+            cp ../../../LICENSE .
+            zip -9r ${ASSET_NAME} LICENSE sieve-parser
+            gh release upload --clobber ${GITHUB_REF_NAME} ${ASSET_NAME}
+          popd
 
       - name: Build and upload assets files
         run: |
@@ -150,73 +139,3 @@ jobs:
           path: |
             /tmp/docker-cache
           key: ${{ steps.docker-cache-restore.outputs.cache-primary-key }}
-# docker save -o rust-linux-darwin-builder.tar joseluisq/rust-linux-darwin-builder:1.73.0
-# 7,6G
-# docker save joseluisq/rust-linux-darwin-builder:1.73.0 | gzip > ust-linux-darwin-builder.tar.gz
-# 2,2G
-# docker save joseluisq/rust-linux-darwin-builder:1.73.0 | zstd > ust-linux-darwin-builder.tar.zst
-# 2,0G
-
-#
-# --volume /root/.cargo:/root/.cargo \
-
-# ASSET_NAME=sieve-parser-${{ matrix.builder.assets-suffix }}.zip
-
-# pushd target/${{ matrix.builder.target }}/release
-#   cp ../../../LICENSE .
-#   zip -9r ${ASSET_NAME} LICENSE sieve-parser
-#   gh release upload --clobber ${GITHUB_REF_NAME} ${ASSET_NAME}
-# popd
-
-# build-release:
-#   name: Build Release
-#   needs: create-release
-#   strategy:
-#     matrix:
-#       platform:
-#         - os: ubuntu-latest
-#           target: x86_64-unknown-linux-gnu
-#           assets-suffix: x86_64-linux
-
-#         # - os: ubuntu-latest
-#         #   target: aarch64-unknown-linux-gnu
-#         #   assets-suffix: aarch64-linux
-
-#         # - os: macos-latest
-#         #   target: x86_64-apple-darwin
-
-#         # - os: windows-latest
-#         #   target: x86_64-pc-windows-gnu
-
-#   runs-on: ${{ matrix.platform.os }}
-#   steps:
-#     - name: Checkout
-#       uses: actions/checkout@v4
-#       with:
-#         fetch-depth: 1
-
-#     - name: Install Rust Toolchain
-#       uses: actions-rust-lang/setup-rust-toolchain@v1
-#       with:
-#         toolchain: stable
-#         target: ${{ matrix.platform.target }}
-
-#     - name: Build
-#       run: make build
-
-#     - name: Test
-#       run: make test
-
-#     - name: Upload assets files
-#       env:
-#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#       run: |
-#         echo ${RELEASE_VERSION}
-
-#         ASSET_NAME=sieve-parser-${{ matrix.platform.assets-suffix }}.zip
-
-#         pushd target/release
-#           cp ../../LICENSE .
-#           zip -9r ${ASSET_NAME} LICENSE sieve-parser
-#           gh release upload --clobber ${GITHUB_REF_NAME} ${ASSET_NAME}
-#         popd

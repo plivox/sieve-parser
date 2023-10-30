@@ -37,10 +37,10 @@ impl<'r> From<Pair<'r, Rule>> for TestHeader {
                 Rule::comparators => {
                     test_header.comparators = Some(Comparators::from(inner));
                 }
-                Rule::test_header_argument_header => {
+                Rule::tst_header_arg_header => {
                     test_header.header = Some(Literal::from(inner).inner());
                 }
-                Rule::test_header_argument_key => {
+                Rule::tst_header_arg_key => {
                     test_header.key = Some(Literal::from(inner).inner());
                 }
                 _ => {

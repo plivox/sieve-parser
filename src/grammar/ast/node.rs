@@ -22,16 +22,21 @@ pub enum Node {
     ActionVacation(ActionVacation),
     ActionReject(ActionReject),
     ActionNotify(ActionNotify),
+    ActionAddFlag(ActionAddFlag),
+    ActionRemoveFlag(ActionRemoveFlag),
+    ActionSetFlag(ActionSetFlag),
 
     TestAddress(TestAddress),
     TestAllof(TestAllof),
     TestAnyof(TestAnyof),
+    TestFalse(TestFalse),
+    TestTrue(TestTrue),
     TestEnvelope(TestEnvelope),
     TestExists(TestExists),
-    TestFalse(TestFalse),
+    TestFlag(TestFlag),
     TestHeader(TestHeader),
+    TestNot(TestNot),
     TestSize(TestSize),
-    TestTrue(TestTrue),
 
     Comment(Comment),
 }
@@ -44,9 +49,7 @@ pub fn tree<'n>(pairs: Pairs<Rule>, mut nodes: Vec<Box<Node>>) -> Vec<Box<Node>>
 
         match pair.as_rule() {
             Rule::EOI => {}
-            //
             // Special rule for grouping test nodes
-            //
             Rule::test => {
                 let children = tree(pair.clone().into_inner(), nodes.clone());
                 nodes = children;
@@ -54,31 +57,39 @@ pub fn tree<'n>(pairs: Pairs<Rule>, mut nodes: Vec<Box<Node>>) -> Vec<Box<Node>>
             _ => {
                 let node = match pair.as_rule() {
                     // Controls
-                    Rule::control_condition_if
-                    | Rule::control_condition_elsif
-                    | Rule::control_condition_else => {
+                    Rule::ctl_condition_if
+                    | Rule::ctl_condition_elsif
+                    | Rule::ctl_condition_else => {
                         Node::ControlCondition(ControlCondition::from(pair))
                     }
-                    Rule::control_require => Node::ControlRequire(ControlRequire::from(pair)),
-                    Rule::control_stop => Node::ControlStop(ControlStop::from(pair)),
+                    Rule::ctl_require => Node::ControlRequire(ControlRequire::from(pair)),
+                    Rule::ctl_stop => Node::ControlStop(ControlStop::from(pair)),
+
                     // Actions
-                    Rule::action_fileinto => Node::ActionFileinto(ActionFileinto::from(pair)),
-                    Rule::action_redirect => Node::ActionRedirect(ActionRedirect::from(pair)),
-                    Rule::action_keep => Node::ActionKeep(ActionKeep::from(pair)),
-                    Rule::action_discard => Node::ActionDiscard(ActionDiscard::from(pair)),
-                    Rule::action_vacation => Node::ActionVacation(ActionVacation::from(pair)),
-                    Rule::action_reject => Node::ActionReject(ActionReject::from(pair)),
-                    Rule::action_notify => Node::ActionNotify(ActionNotify::from(pair)),
+                    Rule::act_fileinto => Node::ActionFileinto(ActionFileinto::from(pair)),
+                    Rule::act_redirect => Node::ActionRedirect(ActionRedirect::from(pair)),
+                    Rule::act_keep => Node::ActionKeep(ActionKeep::from(pair)),
+                    Rule::act_discard => Node::ActionDiscard(ActionDiscard::from(pair)),
+                    Rule::act_vacation => Node::ActionVacation(ActionVacation::from(pair)),
+                    Rule::act_reject => Node::ActionReject(ActionReject::from(pair)),
+                    Rule::act_notify => Node::ActionNotify(ActionNotify::from(pair)),
+                    Rule::act_flag_set => Node::ActionSetFlag(ActionSetFlag::from(pair)),
+                    Rule::act_flag_add => Node::ActionAddFlag(ActionAddFlag::from(pair)),
+                    Rule::act_flag_remove => Node::ActionRemoveFlag(ActionRemoveFlag::from(pair)),
+
                     // Tests
-                    Rule::test_address => Node::TestAddress(TestAddress::from(pair)),
-                    Rule::test_allof => Node::TestAllof(TestAllof::from(pair)),
-                    Rule::test_anyof => Node::TestAnyof(TestAnyof::from(pair)),
-                    Rule::test_envelope => Node::TestEnvelope(TestEnvelope::from(pair)),
-                    Rule::test_exists => Node::TestExists(TestExists::from(pair)),
-                    Rule::test_false => Node::TestFalse(TestFalse::from(pair)),
-                    Rule::test_header => Node::TestHeader(TestHeader::from(pair)),
-                    Rule::test_size => Node::TestSize(TestSize::from(pair)),
-                    Rule::test_true => Node::TestTrue(TestTrue::from(pair)),
+                    Rule::tst_address => Node::TestAddress(TestAddress::from(pair)),
+                    Rule::tst_allof => Node::TestAllof(TestAllof::from(pair)),
+                    Rule::tst_anyof => Node::TestAnyof(TestAnyof::from(pair)),
+                    Rule::tst_envelope => Node::TestEnvelope(TestEnvelope::from(pair)),
+                    Rule::tst_exists => Node::TestExists(TestExists::from(pair)),
+                    Rule::tst_false => Node::TestFalse(TestFalse::from(pair)),
+                    Rule::tst_header => Node::TestHeader(TestHeader::from(pair)),
+                    Rule::tst_size => Node::TestSize(TestSize::from(pair)),
+                    Rule::tst_true => Node::TestTrue(TestTrue::from(pair)),
+                    Rule::tst_not => Node::TestNot(TestNot::from(pair)),
+                    Rule::tst_has_flag => Node::TestFlag(TestFlag::from(pair)),
+
                     // Comment
                     Rule::COMMENT | Rule::hash_comment | Rule::bracketed_comment => {
                         Node::Comment(Comment::from(pair))
