@@ -105,7 +105,9 @@ jobs:
           ASSET_NAME: sieve-parser-${{ matrix.builder.assets-suffix }}.zip
           CARGO_HOME: /cache/cargo/
         run: |
-          docker run --platform ${{ matrix.builder.platform }} --rm --workdir /workspace \
+          docker run --platform ${{ matrix.builder.platform }} --rm \
+            --user 1001 \
+            --workdir /workspace \
             --volume ${{ github.workspace }}:/workspace \
             joseluisq/rust-linux-darwin-builder:1.73.0 \
             sh -c "cargo build --release --all-features --target ${{ matrix.builder.target }}"
@@ -113,7 +115,7 @@ jobs:
           ls -l target/${{ matrix.builder.target }}/release
 
           pushd target/${{ matrix.builder.target }}/release
-            sudo cp ${{ github.workspace }}/LICENSE .
+            cp ${{ github.workspace }}/LICENSE .
             zip -9r ${ASSET_NAME} LICENSE sieve-parser
             gh release upload --clobber ${GITHUB_REF_NAME} ${ASSET_NAME}
           popd
