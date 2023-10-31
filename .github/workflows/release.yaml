@@ -114,7 +114,7 @@ jobs:
             joseluisq/rust-linux-darwin-builder:1.73.0 \
             sh -c "cargo build --release --all-features --target ${{ matrix.builder.target }}"
 
-          chown -R runner:runner target
+          sudo chown -R runner:runner target
 
           pushd target/${{ matrix.builder.target }}/release
             cp ${{ github.workspace }}/LICENSE .
