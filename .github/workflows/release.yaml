@@ -109,11 +109,12 @@ jobs:
           echo $(id -g runner)
 
           docker run --platform ${{ matrix.builder.platform }} --rm \
-            --user $(id -u runner):$(id -g runner) \
             --workdir /workspace \
             --volume ${{ github.workspace }}:/workspace \
             joseluisq/rust-linux-darwin-builder:1.73.0 \
             sh -c "cargo build --release --all-features --target ${{ matrix.builder.target }}"
+
+          chown -R runner:runner target
 
           pushd target/${{ matrix.builder.target }}/release
             cp ${{ github.workspace }}/LICENSE .
