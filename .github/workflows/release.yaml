@@ -106,7 +106,7 @@ jobs:
           CARGO_HOME: /cache/cargo/
         run: |
           docker run --platform ${{ matrix.builder.platform }} --rm \
-            --user 1001 \
+            --user runner \
             --workdir /workspace \
             --volume ${{ github.workspace }}:/workspace \
             joseluisq/rust-linux-darwin-builder:1.73.0 \
