@@ -105,8 +105,11 @@ jobs:
           ASSET_NAME: sieve-parser-${{ matrix.builder.assets-suffix }}.zip
           CARGO_HOME: /cache/cargo/
         run: |
+          id -u runner
+          id -g runner
+
           docker run --platform ${{ matrix.builder.platform }} --rm \
-            --user runner \
+            --user \$(id -u runner) \
             --workdir /workspace \
             --volume ${{ github.workspace }}:/workspace \
             joseluisq/rust-linux-darwin-builder:1.73.0 \
