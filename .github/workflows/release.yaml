@@ -4,11 +4,11 @@ permissions:
   contents: write
 
 on:
-  # push:
-  #   tags:
-  #     - v[0-9]+.*
   push:
-    branches: [main]
+    tags:
+      - v[0-9]+.*
+  # push:
+  #   branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
@@ -48,20 +48,20 @@ jobs:
             target: x86_64-unknown-linux-gnu
             assets-suffix: x86_64-linux
 
-          # - os: ubuntu-latest
-          #   platform: linux/arm64
-          #   target: aarch64-unknown-linux-gnu
-          #   assets-suffix: aarch64-linux
+          - os: ubuntu-latest
+            platform: linux/arm64
+            target: aarch64-unknown-linux-gnu
+            assets-suffix: aarch64-linux
 
-          # - os: ubuntu-latest
-          #   platform: linux/amd64
-          #   target: x86_64-apple-darwin
-          #   assets-suffix: x86_64-darwin
+          - os: ubuntu-latest
+            platform: linux/amd64
+            target: x86_64-apple-darwin
+            assets-suffix: x86_64-darwin
 
-          # - os: ubuntu-latest
-          #   platform: linux/arm64
-          #   target: aarch64-apple-darwin
-          #   assets-suffix: aarch64-darwin
+          - os: ubuntu-latest
+            platform: linux/arm64
+            target: aarch64-apple-darwin
+            assets-suffix: aarch64-darwin
 
     runs-on: ${{ matrix.builder.os }}
     steps:
@@ -105,9 +105,6 @@ jobs:
           ASSET_NAME: sieve-parser-${{ matrix.builder.assets-suffix }}.zip
           CARGO_HOME: /cache/cargo/
         run: |
-          echo $(id -u runner)
-          echo $(id -g runner)
-
           docker run --platform ${{ matrix.builder.platform }} --rm \
             --workdir /workspace \
             --volume ${{ github.workspace }}:/workspace \
@@ -115,7 +112,6 @@ jobs:
             sh -c "cargo build --release --all-features --target ${{ matrix.builder.target }}"
 
           sudo chown -R runner:runner target
-
           pushd target/${{ matrix.builder.target }}/release
             cp ${{ github.workspace }}/LICENSE .
             zip -9r ${ASSET_NAME} LICENSE sieve-parser
