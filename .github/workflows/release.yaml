@@ -109,7 +109,7 @@ jobs:
             --workdir /workspace \
             --volume ${{ github.workspace }}:/workspace \
             joseluisq/rust-linux-darwin-builder:1.73.0 \
-            sh -c "cargo build --release --all-features --target ${{ matrix.builder.target }}"
+            sh -c "make build CARGO_TARGET=${{ matrix.builder.target }}"
 
           sudo chown -R runner:runner target
           pushd target/${{ matrix.builder.target }}/release
